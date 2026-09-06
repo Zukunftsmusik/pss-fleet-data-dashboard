@@ -1,8 +1,8 @@
-import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -40,7 +40,21 @@ async def test_api_route():
 # ==========================================
 # 2. Hardcoded 90s Landing Page & SPA Fallback
 # ==========================================
-FRONTEND_DIST_DIR = "/app/frontend/dist"
+FRONTEND_DIST_DIR = Path("/app/frontend/dist")
+
+if FRONTEND_DIST_DIR.exists():
+    # Mount to the bare '/' root context path internally inside the container,
+    # so paths like /dashboard/assets look exactly like /assets to the static disk finder!
+    app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="frontend")
+
+    # Clean catch-all fallback handler for Vue Router (SPA history mode support)
+    @app.exception_handler(StarletteHTTPException)
+    async def spa_page_fallback(request, exc):
+        if exc.status_code == 404:
+            # If a user reloads the page or accesses a frontend path, send the base index.html
+            return FileResponse(FRONTEND_DIST_DIR / "index.html")
+        raise exc
+
 
 # HTML Template for the glorious 90s Under Construction theme
 GLORIOUS_90S_HTML = """
@@ -113,19 +127,3 @@ GLORIOUS_90S_HTML = """
 </body>
 </html>
 """
-
-# Check if the real Vue application build exists
-if os.path.exists(FRONTEND_DIST_DIR):
-    # If production Vue code is compiled, mount and serve it
-    app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="frontend")
-
-    @app.exception_handler(StarletteHTTPException)
-    async def spa_page_fallback(request, exc):
-        if exc.status_code == 404:
-            return FileResponse(os.path.join(FRONTEND_DIST_DIR, "index.html"))
-        raise exc
-else:
-    # Default fallback: Serve the ugly 90s page if Vue isn't built yet
-    @app.get("/{catchall:path}", response_class=HTMLResponse)
-    async def serve_90s_fallback():
-        return HTMLResponse(content=GLORIOUS_90S_HTML, status_code=200)
