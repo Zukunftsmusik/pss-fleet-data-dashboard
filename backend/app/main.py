@@ -27,7 +27,7 @@ app.add_middleware(
 # ==========================================
 # 1. API Endpoints (For testing CapRover Nginx routing)
 # ==========================================
-@app.get("/api/v1/test")
+@app.get("/dashboard/api/v1/test")
 async def test_api_route():
     """Use this to verify that CapRover securely forwards /api traffic."""
     return {
