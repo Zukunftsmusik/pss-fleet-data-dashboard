@@ -43,17 +43,21 @@ async def test_api_route():
 FRONTEND_DIST_DIR = Path("/app/frontend/dist")
 
 if FRONTEND_DIST_DIR.exists():
-    # Mount to the bare '/' root context path internally inside the container,
-    # so paths like /dashboard/assets look exactly like /assets to the static disk finder!
-    app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="frontend")
+    # Create an entirely isolated sub-app dedicated solely to the dashboard assets
+    dashboard_app = FastAPI(title="Vue Dashboard Asset Host")
 
-    # Clean catch-all fallback handler for Vue Router (SPA history mode support)
-    @app.exception_handler(StarletteHTTPException)
-    async def spa_page_fallback(request, exc):
+    # Mount the static build files (assets, images) to the sub-app root
+    dashboard_app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="static")
+
+    # Handle SPA front-end routing inside the sub-app context safely
+    @dashboard_app.exception_handler(StarletteHTTPException)
+    async def spa_fallback(request, exc):
         if exc.status_code == 404:
-            # If a user reloads the page or accesses a frontend path, send the base index.html
             return FileResponse(FRONTEND_DIST_DIR / "index.html")
-        raise exc
+        return exc
+
+    # Mount the entire sub-app under the main '/dashboard' prefix
+    app.mount("/dashboard", dashboard_app)
 
 
 # HTML Template for the glorious 90s Under Construction theme
