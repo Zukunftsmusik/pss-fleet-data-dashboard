@@ -43,20 +43,25 @@ async def test_api_route():
 FRONTEND_DIST_DIR = Path("/app/frontend/dist")
 
 if FRONTEND_DIST_DIR.exists():
-    # Create an entirely isolated sub-app dedicated solely to the dashboard assets
-    dashboard_app = FastAPI(title="Vue Dashboard Asset Host")
+    dashboard_app = FastAPI(title="Vue Dashboard Host")
 
-    # Mount the static build files (assets, images) to the sub-app root
+    # FIX: Intercept the blank sub-app root route and deliver index.html directly!
+    @dashboard_app.get("/", response_class=FileResponse)
+    async def serve_dashboard_index():
+        return FileResponse(FRONTEND_DIST_DIR / "index.html")
+
+    # Mount static assets directory context behind an explicit sub-route flag
+    # This prevents the asset compilation chunks from clashing with the root loader path
     dashboard_app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="static")
 
-    # Handle SPA front-end routing inside the sub-app context safely
+    # Handle structural catch-all fallback routines for SPA sub-view history routing
     @dashboard_app.exception_handler(StarletteHTTPException)
     async def spa_fallback(request, exc):
         if exc.status_code == 404:
             return FileResponse(FRONTEND_DIST_DIR / "index.html")
         return exc
 
-    # Mount the entire sub-app under the main '/dashboard' prefix
+    # Securely map the sub-application infrastructure down under the core prefix string
     app.mount("/dashboard", dashboard_app)
 
 
