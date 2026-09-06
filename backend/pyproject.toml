@@ -1,0 +1,51 @@
+[project]
+name = "pss-fleet-data-dashboard"
+version = "0.0.1"
+license = { file = "LICENSE" }
+description = "Frontend for the PSS Fleet Data API"
+authors = [{ name = "The worst.", email = "theworstpss@gmail.com" }]
+readme = "README.md"
+requires-python = ">= 3.14.6"
+dependencies = [
+    "fastapi[standard]>=0.141.0",
+    "fastapi-limiter>=0.2.0",
+    "orjson>=3.12.0",
+    "python-dateutil>=2.9.0.post0",
+    "pss-fleet-data-client>=0.8.0",
+]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.16.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "pytest-env>=1.7.0",
+    "ruff>=0.16.6",
+    "vulture>=2.16",
+]
+
+[tool.ruff]
+line-length = 150
+target-version = "py314"
+exclude = ["__pycache__", ".direnv", ".git", ".venv", "build", "dist"]
+
+[tool.ruff.lint]
+extend-select = ["C", "B", "B9", "E", "F", "I", "W"]
+extend-ignore = ["B008", "E501", "W291"]
+per-file-ignores = { "__init__.py" = ["F401"] }
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+
+[tool.pytest.ini_options]
+pythonpath = "app"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
+
+[tool.vulture]
+min_confidence = 100
+paths = ["app"]
+sort_by_size = true

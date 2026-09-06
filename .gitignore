@@ -216,3 +216,39 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ==========================================
+# Vue.js Frontend (Vite / Node)
+# ==========================================
+
+# Dependency directories
+frontend/node_modules/
+frontend/jspm_packages/
+
+# Build outputs (Compiled production files)
+frontend/dist/
+frontend/local/
+
+# Log files
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Editor/IDE specific files in the frontend folder
+frontend/.vscode/
+frontend/.idea/
+frontend/*.suo
+frontend/*.ntvs*
+frontend/*.njsproj
+frontend/*.sln
+frontend/*.sw?
+
+# Local environment configuration files
+frontend/.env.local
+frontend/.env.*.local
+
+# TypeScript / Build caches
+frontend/.cache/
+frontend/.tsbuildinfo/
