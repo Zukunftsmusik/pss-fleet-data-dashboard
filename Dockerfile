@@ -5,7 +5,7 @@ WORKDIR /build
 
 # Leverage Docker cache for JavaScript dependencies
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copy Vue source files and build the production bundle
 COPY frontend/ ./
