@@ -2,7 +2,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -37,9 +37,17 @@ FRONTEND_DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 if FRONTEND_DIST_DIR.exists():
     dashboard_app = FastAPI(title="Vue Dashboard Host")
 
+    @dashboard_app.middleware("http")
+    async def redirect_frontend_pages(request, call_next):
+        path = request.url.path
+        if path != "/" and not path.endswith("/") and "." not in path.rsplit("/", 1)[-1]:
+            return RedirectResponse(url=request.url.replace(path=f"{path}/"), status_code=307)
+        return await call_next(request)
+
     @dashboard_app.exception_handler(StarletteHTTPException)
     async def frontend_fallback(request, exc):
-        if exc.status_code == 404:
+        path = request.url.path
+        if exc.status_code == 404 and "." not in path.rsplit("/", 1)[-1]:
             return FileResponse(FRONTEND_DIST_DIR / "index.html")
         return exc
 
