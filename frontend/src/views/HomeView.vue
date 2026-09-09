@@ -6,7 +6,7 @@ const environment = ref('')
 
 onMounted(async () => {
   try {
-    const response = await fetch('/dashboard/api/v1/test')
+    const response = await fetch('/dashboard/api/v1/test/')
     const result = await response.json()
     message.value = result.message
     environment.value = result.container_environment

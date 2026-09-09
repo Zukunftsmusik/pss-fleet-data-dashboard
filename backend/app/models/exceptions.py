@@ -1,0 +1,238 @@
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+
+from ..models.enums import ErrorCode
+from .link import Link
+
+
+# Base Exception
+
+
+@dataclass(frozen=True)
+class ApiError(Exception):
+    """
+    The base exception to be thrown, when an error occurs in the API.
+    """
+
+    code: str | ErrorCode = field(init=False)
+    message: str = field(init=False)
+    details: str
+    timestamp: datetime | str = field(default_factory=lambda: datetime.now(tz=UTC))
+    suggestion: str = field(default="")
+    links: list[Link] = field(default_factory=lambda: list())  # noqa:C408
+
+
+# HTTP 401
+
+
+class NotAuthenticatedError(ApiError):
+    code = ErrorCode.NOT_AUTHENTICATED
+    message = "You are not authenticated."
+
+
+# HTTP 403
+
+
+class MissingAccessError(ApiError):
+    code = ErrorCode.FORBIDDEN
+    message = "You don't have the required permissions to access this endpoint."
+
+
+# HTTP 404
+
+
+class NotFoundError(ApiError):
+    code = ErrorCode.NOT_FOUND
+    message = "The requested resource could not be found."
+
+
+class FleetNotFoundError(NotFoundError):
+    code = ErrorCode.FLEET_NOT_FOUND
+    message = "The requested Fleet could not be found."
+
+
+class PlayerNotFoundError(NotFoundError):
+    code = ErrorCode.PLAYER_NOT_FOUND
+    message = "The requested Player could not be found."
+
+
+# HTTP 405
+
+
+class MethodNotAllowedError(ApiError):
+    code = ErrorCode.METHOD_NOT_ALLOWED
+    message = "The method is not allowed for this endpoint."
+
+
+# HTTP 409
+
+
+class ConflictError(ApiError):
+    code = ErrorCode.CONFLICT
+    message = "The resource could not be created or updated."
+
+
+# HTTP 415
+
+
+class UnsupportedMediaTypeError(ApiError):
+    code = ErrorCode.UNSUPPORTED_MEDIA_TYPE
+    message = "The provided media type is not supported."
+
+
+# HTTP 422
+
+
+class ParameterValidationError(ApiError):
+    code = ErrorCode.INVALID_PARAMETER
+    message = "A provided parameter received an unsupported value or is in an unsupported format."
+
+
+# Parameter Format
+
+
+class ParameterFormatError(ParameterValidationError):
+    code = ErrorCode.INVALID_PARAMETER_FORMAT
+    message = "A provided parameter is in an unsupported format."
+
+
+class InvalidBoolError(ParameterFormatError):
+    code = ErrorCode.INVALID_BOOL
+    message = "The provided value can't be parsed to a bool."
+
+
+class InvalidDateTimeError(ParameterFormatError):
+    code = ErrorCode.INVALID_DATETIME
+    message = "The provided value can't be parsed to a datetime."
+
+
+class InvalidJsonUpload(ParameterFormatError):
+    code = ErrorCode.INVALID_JSON_FORMAT
+    message = "The uploaded file is not a valid json file."
+
+
+class InvalidNumberError(ParameterFormatError):
+    code = ErrorCode.INVALID_NUMBER
+    message = "The provided value can't be parsed to a number."
+
+
+# Parameter Value
+
+
+class ParameterValueError(ParameterValidationError):
+    code = ErrorCode.INVALID_PARAMETER_VALUE
+    message = "A provided parameter received an unsupported value."
+
+
+class FromDateAfterToDateError(ParameterValueError):
+    code = ErrorCode.FROM_DATE_AFTER_TO_DATE
+    message = "The value for the parameter `fromDate` is bigger than the value for the parameter `toDate`."
+
+
+class InvalidAllianceIdError(ParameterValueError):
+    code = ErrorCode.PARAMETER_ALLIANCE_ID_INVALID
+    message = "The provided value for the parameter `allianceId` is invalid."
+
+
+class InvalidCollectionIdError(ParameterValueError):
+    code = ErrorCode.PARAMETER_COLLECTION_ID_INVALID
+    message = "The provided value for the parameter `collectionId` is invalid."
+
+
+class InvalidDescError(ParameterValueError):
+    code = ErrorCode.PARAMETER_DESC_INVALID
+    message = "The provided value for the parameter `desc` is invalid."
+
+
+class InvalidFromDateError(ParameterValueError):
+    code = ErrorCode.PARAMETER_FROM_DATE_INVALID
+    message = "The provided value for the parameter `fromDate` is invalid."
+
+
+class FromDateTooEarlyError(InvalidFromDateError):
+    code = ErrorCode.PARAMETER_FROM_DATE_TOO_EARLY
+    message = "The provided value for the parameter `fromDate` is too early."
+
+
+class InvalidToDateError(ParameterValueError):
+    code = ErrorCode.PARAMETER_TO_DATE_INVALID
+    message = "The provided value for the parameter `toDate` is invalid."
+
+
+class ToDateTooEarlyError(InvalidToDateError):
+    code = ErrorCode.PARAMETER_TO_DATE_TOO_EARLY
+    message = "The provided value for the parameter `toDate` is too early."
+
+
+class InvalidIntervalError(ParameterValueError):
+    code = ErrorCode.PARAMETER_INTERVAL_INVALID
+    message = "The provided value for the parameter `interval` is invalid."
+
+
+class InvalidOnMissingError(ParameterValueError):
+    code = ErrorCode.PARAMETER_ONMISSING_INVALID
+    message = "The provided value for the parameter `onMissing` is invalid."
+
+
+class InvalidSkipError(ParameterValueError):
+    code = ErrorCode.PARAMETER_SKIP_INVALID
+    message = "The provided value for the parameter `skip` is invalid."
+
+
+class InvalidTakeError(ParameterValueError):
+    code = ErrorCode.PARAMETER_TAKE_INVALID
+    message = "The provided value for the parameter `take` is invalid."
+
+
+class InvalidUserIdError(ParameterValueError):
+    code = ErrorCode.PARAMETER_USER_ID_INVALID
+    message = "The provided value for the parameter `userId` is invalid."
+
+
+# HTTP 429
+
+
+class TooManyRequestsError(ApiError):  # 429
+    code = ErrorCode.RATE_LIMITED
+    message = "You've been rate-limited."
+
+
+# HTTP 500
+
+
+class ServerError(ApiError):  # 500
+    code = ErrorCode.SERVER_ERROR
+    message = "An internal server error occured."
+
+
+__all__ = [
+    "ApiError",
+    "ConflictError",
+    "FleetNotFoundError",
+    "FromDateAfterToDateError",
+    "FromDateTooEarlyError",
+    "InvalidAllianceIdError",
+    "InvalidBoolError",
+    "InvalidCollectionIdError",
+    "InvalidDateTimeError",
+    "InvalidDescError",
+    "InvalidFromDateError",
+    "InvalidIntervalError",
+    "InvalidJsonUpload",
+    "InvalidNumberError",
+    "InvalidSkipError",
+    "InvalidTakeError",
+    "InvalidToDateError",
+    "InvalidUserIdError",
+    "MethodNotAllowedError",
+    "MissingAccessError",
+    "NotAuthenticatedError",
+    "NotFoundError",
+    "ParameterFormatError",
+    "ParameterValidationError",
+    "ParameterValueError",
+    "ServerError",
+    "ToDateTooEarlyError",
+    "TooManyRequestsError",
+    "UnsupportedMediaTypeError",
+]

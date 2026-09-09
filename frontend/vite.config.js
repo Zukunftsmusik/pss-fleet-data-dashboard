@@ -12,9 +12,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Forwards local frontend http://localhost:5173/api requests 
-      // directly to your local Python gateway at http://localhost:8000/api
-      '/api': {
+      // Forwards local frontend /dashboard/api requests to the Python gateway.
+      '/dashboard/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
