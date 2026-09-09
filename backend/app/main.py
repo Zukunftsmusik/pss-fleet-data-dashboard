@@ -32,7 +32,14 @@ app.mount("/dashboard/api", api_app)
 # ==========================================
 # 2. Static Dashboard Homepage
 # ==========================================
-FRONTEND_DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+FRONTEND_DIST_CANDIDATES = (
+    Path(__file__).resolve().parents[2] / "frontend" / "dist",
+    Path(__file__).resolve().parents[1] / "frontend" / "dist",
+)
+FRONTEND_DIST_DIR = next(
+    (directory for directory in FRONTEND_DIST_CANDIDATES if directory.exists()),
+    FRONTEND_DIST_CANDIDATES[0],
+)
 
 if FRONTEND_DIST_DIR.exists():
     dashboard_app = FastAPI(title="Vue Dashboard Host")
