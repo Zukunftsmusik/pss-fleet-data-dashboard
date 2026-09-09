@@ -3,7 +3,23 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    {
+      name: 'dashboard-base-redirect',
+      configureServer(server) {
+        server.middlewares.use((request, response, next) => {
+          if (request.url === '/dashboard' || request.url?.startsWith('/dashboard?')) {
+            response.statusCode = 307
+            response.setHeader('Location', '/dashboard/')
+            response.end()
+            return
+          }
+          next()
+        })
+      },
+    },
+  ],
   base: '/dashboard/', // Match your CapRover subfolder routing
   resolve: {
     alias: {
