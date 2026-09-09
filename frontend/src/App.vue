@@ -1,9 +1,12 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
-  <!-- RouterView directly injects whatever page route you are looking at -->
+  <nav class="site-navigation" aria-label="Main navigation">
+    <RouterLink to="/">Home</RouterLink>
+    <RouterLink to="/player">Player</RouterLink>
+  </nav>
   <RouterView />
 </template>
 
@@ -13,5 +16,17 @@ body {
   margin: 0;
   padding: 0;
   background-color: #000080;
+}
+
+.site-navigation {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #000;
+  font-family: "MS Sans Serif", "Courier New", monospace;
+}
+
+.site-navigation a {
+  color: #00ffff;
 }
 </style>
