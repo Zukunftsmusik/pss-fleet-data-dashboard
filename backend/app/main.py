@@ -24,32 +24,28 @@ app.add_middleware(
     allow_headers=["*"],  # Allows custom layout or authentication headers
 )
 
-app.include_router(routers.v1, prefix="/dashboard/api")
+api_app = FastAPI(title="PSS Fleet Data Dashboard API", redirect_slashes=True)
+api_app.include_router(routers.v1)
+app.mount("/dashboard/api", api_app)
 
 
 # ==========================================
-# 2. Hardcoded 90s Landing Page & SPA Fallback
+# 2. Static Dashboard Homepage
 # ==========================================
-FRONTEND_DIST_DIR = Path("/app/frontend/dist")
+FRONTEND_DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
 if FRONTEND_DIST_DIR.exists():
     dashboard_app = FastAPI(title="Vue Dashboard Host")
 
-    # FIX: Intercept the blank sub-app root route and deliver index.html directly!
-    @dashboard_app.get("/", response_class=FileResponse)
-    async def serve_dashboard_index():
-        return FileResponse(FRONTEND_DIST_DIR / "index.html")
-
-    # Mount static assets directory context behind an explicit sub-route flag
-    # This prevents the asset compilation chunks from clashing with the root loader path
-    dashboard_app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="static")
-
-    # Handle structural catch-all fallback routines for SPA sub-view history routing
     @dashboard_app.exception_handler(StarletteHTTPException)
-    async def spa_fallback(request, exc):
+    async def frontend_fallback(request, exc):
         if exc.status_code == 404:
             return FileResponse(FRONTEND_DIST_DIR / "index.html")
         return exc
 
-    # Securely map the sub-application infrastructure down under the core prefix string
+    dashboard_app.mount(
+        "/",
+        StaticFiles(directory=FRONTEND_DIST_DIR, html=True),
+        name="static",
+    )
     app.mount("/dashboard", dashboard_app)
